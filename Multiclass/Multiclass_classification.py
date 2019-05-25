@@ -10,6 +10,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.models import load_model
 from keras import layers, models, optimizers
 from keras.callbacks import EarlyStopping, ModelCheckpoint, CSVLogger
+from sklearn.metrics import f1_score
 
 ## Import data augmentation script
 from Multiclass_data_augmentation import augmentation
@@ -223,10 +224,13 @@ for CV in folds:
     
     ## Put ground truth next to network prediction in one array
     compare = np.column_stack((labelsTest,test_pred_array))
+    
+    ## Calculation of F1-score
+    F1 = f1_score(compare[:,0], compare[:,1], average='weighted')
 
     
     ### SAVE VARIABLES
     with open(path_to_save + modelname + '_' + str(CV) + '.pkl', 'wb') as f:
-        pickle.dump([acc, val_acc, loss, val_loss, Time, predictions, compare, idxTest, idxVal], f)
+        pickle.dump([acc, val_acc, loss, val_loss, Time, predictions, compare, F1, idxTest, idxVal], f)
 
 
