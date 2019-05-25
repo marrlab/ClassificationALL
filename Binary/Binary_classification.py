@@ -11,6 +11,7 @@ from keras.models import load_model
 from keras import layers, models
 import pickle
 from keras.callbacks import EarlyStopping, ModelCheckpoint, CSVLogger
+from sklearn.metrics import confusion_matrix
 
 
 ### USER INPUT
@@ -231,10 +232,23 @@ for CV in folds:
                 steps=len(labelsTest),
                 verbose=1)        
     
+        ## Calculate sensitivities and specificities
+        sens = []
+        spec = []
+        for j in range(1000):
+            predNew = np.zeros((len(predictions), 1))
+            predNew[predictions > j/999] = 1
+            
+            tn, fp, fn, tp = confusion_matrix(labelsTest, predNew).ravel()        
+            sens.append(tp/(tp+fn))
+            spec.append(tn/(tn+fp))
+        
+        ## Calculate area under the curve
+        auc = np.trapz(sens,spec)
         
         ### SAVE VARIABLES
         with open(path_to_save + modelname + '_' + str(sizesTrain[index]) + '_' + str(CV) + '.pkl', 'wb') as f:
-            pickle.dump([acc, val_acc, loss, val_loss, Time, predictions, idxTest, idxVal, idxTrainNew, indices0, indices1, indices0Train, indices1Train], f)
+            pickle.dump([acc, val_acc, loss, val_loss, Time, predictions, sens, spec, auc, idxTest, idxVal, idxTrainNew, indices0, indices1, indices0Train, indices1Train], f)
 
 
           
