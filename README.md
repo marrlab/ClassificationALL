@@ -12,7 +12,7 @@ In both the binary classification as multiclass classification scripts, the user
 In the binary classification script, networks can be trained with 10-fold cross-validation and different training set sizes as explained in the article. During training, the accuracies and losses are saved in an excel sheet and the weights of the network that has the lowest validation loss are saved. After training, the weights of the best network are loaded and the images in the test set are tested to evaluate the classification performance. Along with the predictions, the sensitivities and specificities are calculated to be able to create a curve and calculate the area under the curve (AUC).
 
 #### Saliency.py
-Saliency maps can be created to visualize the focus areas of the network when it tries to classify an image. This is done by loading a network with the pretrained weights and the testing images. These images are then classified by the network and at the same time the visualisation is made. These images are then saved in the assigned folder. 
+Saliency maps can be created to visualize the focus areas of the network when it tries to classify an image. This is done by loading a network with the pretrained weights and the testing images. These images are then classified by the network and at the same time the visualization is made. This visualization is done using the Keras Visualization Toolkit that can be found here: https://github.com/raghakot/keras-vis. The augmented images are then saved to the assigned folder. 
 
 ### Multiclass classification
 #### Multiclass_classification.py
