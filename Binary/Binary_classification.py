@@ -94,10 +94,12 @@ imagesAll = np.stack(imagesAll,axis=0)
 
 
 ### IMPORT LABELS
-df = pd.read_excel(path_to_labels + 'labels.xls')
+### Import labels
+df = pd.read_excel(path_to_labels + 'Supplementary Table S1.xlsx')
 
-labelsAll = df[['Binary']].values.flatten()
+labelsAll = df[['Binary class']].values.flatten()
 labelsAll = labelsAll[imageNrs]
+labelsAll = labelsAll.astype(int).reshape(labelsAll.size)
 
 ## Randomize indices to randomize images in test set
 indices0, = np.where(labelsAll == 0)
