@@ -94,7 +94,6 @@ imagesAll = np.stack(imagesAll,axis=0)
 
 
 ### IMPORT LABELS
-### Import labels
 df = pd.read_excel(path_to_labels + 'Supplementary Table S1.xlsx')
 
 labelsAll = df[['Binary class']].values.flatten()
