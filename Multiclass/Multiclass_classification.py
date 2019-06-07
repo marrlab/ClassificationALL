@@ -87,10 +87,11 @@ imagesAll = np.stack(imagesAll,axis=0)
 
 
 ### IMPORT LABELS
-df = pd.read_excel(path_to_labels + 'labels.xls')
+df = pd.read_excel(path_to_labels + 'Supplementary Table S1.xlsx')
 
-labelsAll = df[['Multiple']].values.flatten()
+labelsAll = df[['Multiclass class']].values.flatten()
 labelsAll = labelsAll[imageNrs]
+labelsAll = labelsAll.astype(int).reshape(labelsAll.size)
 
 
 ### IMPORT CROSS-VALIDATION SPLITS
