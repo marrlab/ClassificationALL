@@ -111,8 +111,8 @@ random.shuffle(indices1)
 ### RUN FOR EACH FOLD
 for CV in folds:
     ### DEFINE IMAGES AS TESTING AND VALIDATION IMAGES
-    idxTest = np.concatenate((indices0[CV*sizes0[CV]:(CV+1)*sizes0[(CV)]],
-                                            indices1[CV*sizes1[CV]:(CV+1)*sizes1[(CV)]]), axis=0)
+    idxTest = np.concatenate((indices0[sum(sizes0[:CV]):sum(sizes0[:CV])+sizes0[CV]],
+                                            indices1[sum(sizes1[:CV]):(CV+1)*sizes1[CV]]), axis=0)
     
     if CV == folds[-1]:
         idxVal = np.concatenate((indices0[0:sizes0[0]], indices1[0:sizes1[0]]), axis=0)
