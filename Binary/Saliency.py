@@ -37,11 +37,10 @@ def setup_sequential_model():
         model.add(layers.MaxPooling2D((2, 2)))
         model.add(layers.Conv2D(16, (3, 3), activation='relu'))
         model.add(layers.MaxPooling2D((2, 2)))
-#        model.add(layers.Conv2D(64, (3, 3), activation='relu'))
-        
+      
         model.add(layers.Flatten())
         model.add(layers.Dense(32, activation='relu'))
-        model.add(layers.Dense(1, activation='sigmoid', name='preds'))
+        model.add(layers.Dense(2, activation='softmax', name='preds'))
 
         return model
 
@@ -50,6 +49,20 @@ if K.image_data_format() == 'channels_first':
         input_shape = (3, img_width, img_height)
 else:
         input_shape = (img_width, img_height, 3)
+   
+### Import images
+pathIm, dirsIm, filesIm = next(os.walk(path_to_images))
+        
+imagesAll = []    
+imageNrs = []
+for i in range(len(filesIm)):
+    # Add images to array
+    im = io.imread(pathIm + filesIm[i],0) 
+    im = im[:,:,0:3]
+    imagesAll.append(im)
+    imageNrs.append(int(filesIm[i][2:5])-1)
+    
+imagesAll = np.stack(imagesAll,axis=0)  
    
     
 ### IMPORT IMAGES
@@ -86,7 +99,6 @@ for CV in folds:
     for j in range(len(sizesTrain)):     
         
         ### CREATE NETWORK AND LOAD WEIGHTS
-        model = setup_sequential_model()
         model = load_model(path_to_save + modelname + '_' + str(sizesTrain[j]) + '_' + str(CV) + '_checkpoint' + '.hdf5')
         model.compile(loss='categorical_crossentropy',
                       optimizer='rmsprop',
