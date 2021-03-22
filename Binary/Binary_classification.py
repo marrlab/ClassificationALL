@@ -55,7 +55,7 @@ def setup_sequential_model():
       
         model.add(layers.Flatten())
         model.add(layers.Dense(32, activation='relu'))
-        model.add(layers.Dense(1, activation='sigmoid', name='preds'))
+        model.add(layers.Dense(2, activation='softmax', name='preds'))
 
         return model
 
@@ -94,11 +94,17 @@ imagesAll = np.stack(imagesAll,axis=0)
 
 
 ### IMPORT LABELS
-df = pd.read_excel(path_to_labels + 'Supplementary Table S1.xlsx')
+df = pd.read_excel(path_to_labels + 'labels.xls')
 
-labelsAll = df[['Binary class']].values.flatten()
+labelsAll = df[['Binary']].values.flatten()
 labelsAll = labelsAll[imageNrs]
-labelsAll = labelsAll.astype(int).reshape(labelsAll.size)
+
+labels = np.zeros((len(labelsAll),2))
+
+for i in range(len(labelsAll)):
+    labels[i, labelsAll[i]] = 1
+
+labelsAll = labels
 
 ## Randomize indices to randomize images in test set
 indices0, = np.where(labelsAll == 0)
@@ -233,23 +239,23 @@ for CV in folds:
                 steps=len(labelsTest),
                 verbose=1)        
     
-        ## Calculate sensitivities and specificities
-        sens = []
-        spec = []
-        for j in range(1000):
-            predNew = np.zeros((len(predictions), 1))
-            predNew[predictions > j/999] = 1
+        pred_binary = np.zeros((len(predictions),1))
+        count = 0
+        for i in range(len(predictions)):
+            if predictions[i,0] > 0.5:
+                pred_binary[i] = 0
+            elif predictions[i,0] <= 0.5:
+                pred_binary[i] = 1
             
-            tn, fp, fn, tp = confusion_matrix(labelsTest, predNew).ravel()        
-            sens.append(tp/(tp+fn))
-            spec.append(tn/(tn+fp))
+            if pred_binary[i] == np.where(labelsTest[i]==1)[0]:
+                count = count + 1
         
-        ## Calculate area under the curve
-        auc = np.trapz(sens,spec)
+        compare = np.column_stack((labelsTest[:,1],pred_binary))
+    
         
-        ### SAVE VARIABLES
+        ## Save variables
         with open(path_to_save + modelname + '_' + str(sizesTrain[index]) + '_' + str(CV) + '.pkl', 'wb') as f:
-            pickle.dump([acc, val_acc, loss, val_loss, Time, predictions, sens, spec, auc, idxTest, idxVal, idxTrainNew, indices0, indices1, indices0Train, indices1Train], f)
+            pickle.dump([acc, val_acc, loss, val_loss, Time, predictions, compare, idxTest, idxVal, idxTrainNew, indices0, indices1, indices0Train, indices1Train], f)
 
 
           
