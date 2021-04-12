@@ -1,5 +1,5 @@
 # ClassificationALL
-These scripts were used in the article titled "Accurate classification of blood cells in a small acute lymphoblastic leukemia dataset using convolutional neural networks" by Schouten et al. The networks were trained on a NVIDIA GeForce GT 730 GPU with Python version 3.5, keras version 2.0.8 and tensorflow-GPU version 1.4.0.
+These scripts were used in the article titled "Tens of images can suffice to train neural networks for malignant leukocyte detection" by Schouten et al in Scientific Reports. The networks were trained on a NVIDIA GeForce GT 730 GPU with Python version 3.5, keras version 2.0.8 and tensorflow-GPU version 1.4.0.
 
 ## Dataset
 The dataset was obtained by filling in the application form on this site: https://homes.di.unimi.it/scotti/all/. The dataset consists of two parts. ALL-IDB1 contains the larger blood smear images. ALL-IDB2 contains the single-cell images that are extracted from the larger ALL-IDB1 images. More information can be found in our article or in the article of the owners of the dataset [1]. 
