@@ -1,4 +1,4 @@
-### IMPORT PACKAGES
+
 import numpy as np
 from datetime import datetime
 import os
@@ -11,22 +11,17 @@ from keras.models import load_model
 from keras import layers, models
 import pickle
 from keras.callbacks import EarlyStopping, ModelCheckpoint, CSVLogger
-from sklearn.metrics import confusion_matrix
 
 
-### USER INPUT
-data_augmentation = 0               #Data augmentation yes(1) or no(0)
-path_to_images = ""
-path_to_labels = ""
-path_to_save = ""
-modelname = ""
-epoch_nr = 500
-folds = range(10)
-img_width, img_height = 257, 257
+DATA_AUGMENTATION = 0               #Data augmentation yes(1) or no(0)
+PATH_TO_IMAGES = ""
+PATH_TO_LABELS = ""
+PATH_TO_SAVE = ""
+MODELNAME = ""
+MAX_EPOCH = 500
+FOLDS = range(10)
+IMG_WIDTH, IMG_HEIGHT = 257, 257
 
-## Sizes of test and validation set
-sizeTest = 25
-sizeVal = 25
 
 ## Ratio between blast and non-blast images in the test set 
 sizes0 = [12,13,12,13,12,13,12,13,12,12]
@@ -38,6 +33,8 @@ sizesTrain = range(10, 201,10)
 
 ### NETWORK STRUCTURE
 def setup_sequential_model():
+        """ Create sequential model """
+        
         model = models.Sequential()
         
         model.add(layers.Conv2D(4, (3, 3), activation='relu', input_shape=input_shape))
@@ -60,26 +57,26 @@ def setup_sequential_model():
         return model
 
 if K.image_data_format() == 'channels_first':
-        input_shape = (3, img_width, img_height)
+        input_shape = (3, IMG_WIDTH, IMG_HEIGHT)
 else:
-        input_shape = (img_width, img_height, 3)
+        input_shape = (IMG_WIDTH, IMG_HEIGHT, 3)
 
 
 ### GENERATORS
 test_datagen = ImageDataGenerator(rescale=1./255)
-if data_augmentation == 1:
+if DATA_AUGMENTATION == 1:
     train_datagen = ImageDataGenerator(
             rotation_range=359,
             horizontal_flip=True,
             vertical_flip=True,
             rescale=1./255,    
             fill_mode='nearest')        
-elif data_augmentation == 0:
+elif DATA_AUGMENTATION == 0:
     train_datagen = ImageDataGenerator(rescale=1./255)
 
 
 ### IMPORT IMAGES
-pathIm, dirsIm, filesIm = next(os.walk(path_to_images))
+pathIm, dirsIm, filesIm = next(os.walk(PATH_TO_IMAGES))
         
 imagesAll = []    
 imageNrs = []
@@ -94,7 +91,7 @@ imagesAll = np.stack(imagesAll,axis=0)
 
 
 ### IMPORT LABELS
-df = pd.read_excel(path_to_labels + 'labels.xls')
+df = pd.read_excel(PATH_TO_LABELS + 'labels.xls')
 
 labelsAll = df[['Binary']].values.flatten()
 labelsAll = labelsAll[imageNrs]
@@ -115,12 +112,12 @@ random.shuffle(indices1)
 
 
 ### RUN FOR EACH FOLD
-for CV in folds:
+for CV in FOLDS:
     ### DEFINE IMAGES AS TESTING AND VALIDATION IMAGES
     idxTest = np.concatenate((indices0[sum(sizes0[:CV]):sum(sizes0[:CV])+sizes0[CV]],
                                             indices1[sum(sizes1[:CV]):(CV+1)*sizes1[CV]]), axis=0)
     
-    if CV == folds[-1]:
+    if CV == FOLDS[-1]:
         idxVal = np.concatenate((indices0[0:sizes0[0]], indices1[0:sizes1[0]]), axis=0)
     else:
         idxVal = np.concatenate((indices0[sum(sizes0[0:CV+1]):sum(sizes0[0:CV+1])+sizes0[CV+1]],
@@ -187,8 +184,8 @@ for CV in folds:
                 shuffle=True)
         
         ## Define callbacks
-        checkpoint = ModelCheckpoint(path_to_save + modelname + '_' + str(sizesTrain[index]) + '_' + str(CV) + '_checkpoint' + '.hdf5', monitor='val_loss', verbose=1, save_best_only=True, mode='auto')
-        csvlog = CSVLogger(path_to_save + modelname + '_' + str(sizesTrain[index]) + '_' + str(CV) + '_train_log.csv',append=False)
+        checkpoint = ModelCheckpoint(PATH_TO_SAVE + MODELNAME + '_' + str(sizesTrain[index]) + '_' + str(CV) + '_checkpoint' + '.hdf5', monitor='val_loss', verbose=1, save_best_only=True, mode='auto')
+        csvlog = CSVLogger(PATH_TO_SAVE + MODELNAME + '_' + str(sizesTrain[index]) + '_' + str(CV) + '_train_log.csv',append=False)
         early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=50, verbose=1)
         
         ## Start training
@@ -196,7 +193,7 @@ for CV in folds:
         history = model.fit_generator(
                     train_generator,
                     steps_per_epoch=len(idxTrainNew)//5,
-                    epochs=epoch_nr,
+                    epochs=MAX_EPOCH,
                     validation_data=val_generator,
                     validation_steps=len(idxVal)//5,
                     callbacks = [checkpoint, csvlog, early_stopping])
@@ -214,7 +211,7 @@ for CV in folds:
         ### TESTING NETWORK
         ## Loading weights of best network that was just trained
         model = setup_sequential_model()
-        model = load_model(path_to_save + modelname + '_' + str(sizesTrain[index]) + '_' + str(CV) + '_checkpoint' + '.hdf5')
+        model = load_model(PATH_TO_SAVE + MODELNAME + '_' + str(sizesTrain[index]) + '_' + str(CV) + '_checkpoint' + '.hdf5')
         model.compile(loss='categorical_crossentropy',
                   optimizer='rmsprop',
                   metrics=['acc'])
@@ -254,8 +251,5 @@ for CV in folds:
     
         
         ## Save variables
-        with open(path_to_save + modelname + '_' + str(sizesTrain[index]) + '_' + str(CV) + '.pkl', 'wb') as f:
+        with open(PATH_TO_SAVE + MODELNAME + '_' + str(sizesTrain[index]) + '_' + str(CV) + '.pkl', 'wb') as f:
             pickle.dump([acc, val_acc, loss, val_loss, Time, predictions, compare, idxTest, idxVal, idxTrainNew, indices0, indices1, indices0Train, indices1Train], f)
-
-
-          
