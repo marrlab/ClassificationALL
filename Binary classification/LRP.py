@@ -16,7 +16,6 @@ eutils = imp.load_source("utils", "")
 mnistutils = imp.load_source("utils_mnist", "")
 
 
-### USER INPUT
 PATH_TO_IMAGES = ""
 PATH_TO_SAVE = ""
 PATH_TO_SAVE_IMAGES = ""
@@ -27,10 +26,9 @@ MODELNAME = ""
 sizesTrain = list(range(10, 101,10)) + [150] + [200]
 folds = range(10)
 lrpmethod = 'LRPE'
-#index = range(25)
 
    
-### Import images
+### IMPORT IMAGES
 pathIm, dirsIm, filesIm = next(os.walk(PATH_TO_IMAGES))
         
 imagesAll = []    
@@ -44,7 +42,7 @@ for i in range(len(filesIm)):
     
 imagesAll = np.stack(imagesAll,axis=0)  
 
-### Import labels
+### IMPORT LABELS
 df = pd.read_excel(PATH_TO_LABELS + 'labels.xls')
 
 labelsAll = df[['Binary']].values.flatten()
