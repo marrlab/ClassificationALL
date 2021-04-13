@@ -12,30 +12,26 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 
-# PARAMETERS ##################################################################
-
-path_to_train_images = "" # Change to same directory where the training images are placed by DataPrep
-path_to_save = ""         # Change to directory where results will be placed 
+PATH_TO_TRAIN_IMAGES = "" # Change to same directory where the training images are placed by DataPrep
+PATH_TO_SAVE = ""         # Change to directory where results will be placed 
                           # Directoy must contain "models", "raw_data", and "images" folders
                           # where the "images" folder contains a "test" and "train" folder
                           # and the "models" folder contains folder for trainingsizes (i.e. 10, 20, ... , 200)
-path_to_test_images = ""  # Change to same directory where the testing images are placed by DataPrep
+PATH_TO_TEST_IMAGES = ""  # Change to same directory where the testing images are placed by DataPrep
 
-epoch_nr = 500  # Number of epochs for training 
-early_stop = 50 # Number of non-decreasing losses to consider before stopping training
-ntest = 600     # (even) Number of images per test fold
-ntrain_list = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200] # What (even) trainingsizes to consider
+MAX_EPOCH = 500  # Number of epochs for training 
+NTEST = 600     # (even) Number of images per test fold
+NTRAIN_LIST = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200] # What (even) trainingsizes to consider
 
 
-# LOADING DATA ################################################################
 
 folds = 10             # The implemented cross validation is hard coded with K=10 (wrt datapreperation)
-nmax = ntrain_list[-1] # Maximum number of images necessary for training
-DataPrep(nmax, ntest)  # Load train and test images
+nmax = NTRAIN_LIST[-1] # Maximum number of images necessary for training
+DataPrep(nmax, NTEST)  # Load train and test images
 labelsTrainAll = [0]*int(nmax/2) + [1]*int(nmax/2) # ntrain_max 50/50 images
-labelsTest = [0]*int(ntest/2) + [1]*int(ntest/2)   # ntest 50/50 images (per fold)
+labelsTest = [0]*int(NTEST/2) + [1]*int(NTEST/2)   # ntest 50/50 images (per fold)
 
-pathIm, dirsIm, filesIm = next(os.walk(path_to_train_images))
+pathIm, dirsIm, filesIm = next(os.walk(PATH_TO_TRAIN_IMAGES))
 imagesTrainAll = []    
 for i in range(len(filesIm)):
     im = io.imread(pathIm + filesIm[i],0) # Add images to array
@@ -44,9 +40,10 @@ for i in range(len(filesIm)):
 imagesTrainAll = np.stack(imagesTrainAll,axis=0)
 
 
-# CNN ARCHITECTURE ############################################################
 
 def setup_sequential_model():
+        """ Create sequential model """
+    
         model = models.Sequential()
         
         model.add(layers.Conv2D(4, (3, 3), activation='relu', input_shape=input_shape))
@@ -67,11 +64,10 @@ def setup_sequential_model():
 
         return model
 
-# EXPERIMENT ##################################################################
 
-for ntrain in ntrain_list:
+for ntrain in NTRAIN_LIST:
 
-    files = glob.glob(path_to_train_images+'*')
+    files = glob.glob(PATH_TO_TRAIN_IMAGES+'*')
     for f in files: # Reset for next number of training images
         os.remove(f)
         
@@ -109,7 +105,7 @@ for ntrain in ntrain_list:
         
         idxTest = list(range(len(filesIm)))
         # Load testing images from correct fold
-        path_to_test_images_fold = path_to_test_images + "/fold" + str(CV+1) + "/"
+        path_to_test_images_fold = PATH_TO_TEST_IMAGES + "/fold" + str(CV+1) + "/"
 
         pathIm, dirsIm, filesIm = next(os.walk(path_to_test_images_fold))
         imagesTest = []    
@@ -130,27 +126,27 @@ for ntrain in ntrain_list:
                 batch_size=BatchSize,
                 shuffle=False)
         
-        random_idx = random.sample(list(range(ntest)), int(ntest/4)) # Validation images
+        random_idx = random.sample(list(range(NTEST)), int(NTEST/4)) # Validation images
         
         val_generator = test_datagen.flow(
                 imagesTest[random_idx,:,:,:], [labelsTest[i] for i in random_idx],
                 batch_size=BatchSize,
                 shuffle=False)
         
-        checkpoint = ModelCheckpoint(path_to_save + "models/" + str(ntrain) + "/model_" + str(CV+1) + '_checkpoint' + '.hdf5', 
+        checkpoint = ModelCheckpoint(PATH_TO_SAVE + "models/" + str(ntrain) + "/model_" + str(CV+1) + '_checkpoint' + '.hdf5', 
                                      monitor='val_loss', verbose=0, save_best_only=True, mode='auto')
-        early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=early_stop, verbose=0)
+        early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=50, verbose=0)
          
         history = model.fit_generator(
                     train_generator,
                     steps_per_epoch= int(np.ceil(len(labelsTrain)/BatchSize)),
-                    epochs=epoch_nr,
+                    epochs=MAX_EPOCH,
                     validation_data=val_generator,
                     validation_steps= int(np.ceil(len(labelsTest)/BatchSize)),
                     callbacks = [checkpoint, early_stopping],
                     verbose=0)
         
-        model.save(path_to_save + "models/" + str(ntrain) + "/model_" + str(CV+1) + '.h5')
+        model.save(PATH_TO_SAVE + "models/" + str(ntrain) + "/model_" + str(CV+1) + '.h5')
         val_acc = history.history['val_accuracy']
 
 
@@ -173,13 +169,13 @@ for ntrain in ntrain_list:
         
         
         # Save variables
-        with open(path_to_save + "raw_data/" + str(ntrain) + '.pkl', 'wb') as f:
+        with open(PATH_TO_SAVE + "raw_data/" + str(ntrain) + '.pkl', 'wb') as f:
             pickle.dump(AUC_res, f)
         
-        with open(path_to_save + "images/train/" + str(ntrain) + '.pkl', 'wb') as f2:
+        with open(PATH_TO_SAVE + "images/train/" + str(ntrain) + '.pkl', 'wb') as f2:
             pickle.dump(which_im_train, f2)
         
-        with open(path_to_save + "images/test/" + str(ntrain) + '.pkl', 'wb') as f3:
+        with open(PATH_TO_SAVE + "images/test/" + str(ntrain) + '.pkl', 'wb') as f3:
             pickle.dump(which_im_test, f3)
         
         
