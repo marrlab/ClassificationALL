@@ -1,4 +1,3 @@
-from keras import activations
 from matplotlib import pyplot as plt
 import pickle
 import numpy as np
@@ -6,14 +5,7 @@ from skimage import io
 import os
 import pandas as pd
 
-from keras import backend as K
-from keras.models import Sequential
 from keras.models import load_model
-from keras.layers import Conv2D, MaxPooling2D
-from keras import layers, models
-import tensorflow as tf
-from tensorflow import keras
-
 from keras.preprocessing.image import ImageDataGenerator
 
 import imp
@@ -25,47 +17,21 @@ mnistutils = imp.load_source("utils_mnist", "")
 
 
 ### USER INPUT
-path_to_images = ""
-path_to_save = ""
-path_to_save_images = ""
-path_to_labels = ""
-modelname = ""
+PATH_TO_IMAGES = ""
+PATH_TO_SAVE = ""
+PATH_TO_SAVE_IMAGES = ""
+PATH_TO_LABELS = ""
+MODELNAME = ""
+
+
 sizesTrain = list(range(10, 101,10)) + [150] + [200]
 folds = range(10)
 lrpmethod = 'LRPE'
 #index = range(25)
-    
-### NETWORK STRUCTURE
-def setup_sequential_model():
-        model = models.Sequential()
-        
-        model.add(layers.Conv2D(4, (3, 3), activation='relu', input_shape=input_shape))
-        model.add(layers.MaxPooling2D((2, 2)))
-        model.add(layers.Conv2D(8, (3, 3), activation='relu'))
-        model.add(layers.MaxPooling2D((2, 2)))
-        model.add(layers.Conv2D(8, (3, 3), activation='relu'))
-        model.add(layers.MaxPooling2D((2, 2)))
-        model.add(layers.Conv2D(8, (3, 3), activation='relu'))
-        model.add(layers.MaxPooling2D((2, 2)))
-        model.add(layers.Conv2D(16, (3, 3), activation='relu'))
-        model.add(layers.MaxPooling2D((2, 2)))
-        model.add(layers.Conv2D(16, (3, 3), activation='relu'))
-        model.add(layers.MaxPooling2D((2, 2)))
-      
-        model.add(layers.Flatten())
-        model.add(layers.Dense(32, activation='relu'))
-        model.add(layers.Dense(2, activation='softmax', name='preds'))
 
-        return model
-
-img_width, img_height = 257, 257
-if K.image_data_format() == 'channels_first':
-    input_shape = (3, img_width, img_height)
-else:
-        input_shape = (img_width, img_height, 3)
    
 ### Import images
-pathIm, dirsIm, filesIm = next(os.walk(path_to_images))
+pathIm, dirsIm, filesIm = next(os.walk(PATH_TO_IMAGES))
         
 imagesAll = []    
 imageNrs = []
@@ -79,7 +45,7 @@ for i in range(len(filesIm)):
 imagesAll = np.stack(imagesAll,axis=0)  
 
 ### Import labels
-df = pd.read_excel(path_to_labels + 'labels.xls')
+df = pd.read_excel(PATH_TO_LABELS + 'labels.xls')
 
 labelsAll = df[['Binary']].values.flatten()
 labelsAll = labelsAll[imageNrs]
@@ -107,8 +73,7 @@ elif lrpmethod == "LRPE":
 
 
 for CV in folds:
-    ## Open pickle
-    f = open(path_to_save + modelname + '_' + str(10) + '_' + str(CV) + '.pkl', 'rb')
+    f = open(PATH_TO_SAVE + MODELNAME + '_' + str(10) + '_' + str(CV) + '.pkl', 'rb')
     obj = pickle.load(f)
     f.close()
     
@@ -118,8 +83,7 @@ for CV in folds:
     labelsTest2 = labelsAll[idxTest]       
     
     for j in range(len(sizesTrain)):     
-        #model = setup_sequential_model()
-        model = load_model(path_to_save + modelname + '_' + str(sizesTrain[j]) + '_' + str(CV) + '_checkpoint' + '.hdf5')
+        model = load_model(PATH_TO_SAVE + MODELNAME + '_' + str(sizesTrain[j]) + '_' + str(CV) + '_checkpoint' + '.hdf5')
         model.compile(loss='binary_crossentropy',
                       optimizer='rmsprop',
                       metrics=['acc'])
@@ -180,18 +144,19 @@ for CV in folds:
                 a = methods[aidx][2](a)
                 # Store the analysis.
                 analysis[i, aidx] = a[0]
+                
         
         for i in range(len(idxTest)):
             fig, ax = plt.subplots(figsize=plt.figaspect(analysis[i,0]))
             fig.subplots_adjust(0,0,1,1)
             ax.imshow(analysis[i,0])
-            plt.savefig(path_to_save_images + "{}_CV{}_Img{}.jpg".format(lrpmethod, str(CV), str(imageNrs[idxTest[i]])))
+            plt.savefig(PATH_TO_SAVE_IMAGES + "{}_CV{}_Img{}.jpg".format(lrpmethod, str(CV), str(imageNrs[idxTest[i]])))
             plt.close()
             
             
             fig, ax = plt.subplots(figsize=plt.figaspect(analysis[i,1]))
             fig.subplots_adjust(0,0,1,1)
             ax.imshow(analysis[i,1])
-            plt.savefig(path_to_save_images + "{}_CV{}_Img{}_W_TrainSize{}.jpg".format(lrpmethod, str(CV), str(imageNrs[idxTest[i]]), str(sizesTrain[j])))
+            plt.savefig(PATH_TO_SAVE_IMAGES + "{}_CV{}_Img{}_W_TrainSize{}.jpg".format(lrpmethod, str(CV), str(imageNrs[idxTest[i]]), str(sizesTrain[j])))
             plt.close()
             
