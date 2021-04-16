@@ -16,14 +16,15 @@ from sklearn.metrics import f1_score
 from Multiclass_data_augmentation import augmentation
 
 
-### USER INPUT
-data_augmentation = 1               #Data augmentation yes(1) or no(0)
-path_to_images = ""
-path_to_labels = ""
-path_to_cv = ""
-path_to_save = ""
-modelname = ""
-epoch_nr = 500
+DATA_AUGMENTATION = 1               #Data augmentation yes(1) or no(0)
+PATH_TO_IMAGES = ""
+PATH_TO_LABELS = ""
+PATH_TO_CV = ""
+PATH_TO_SAVE = ""
+MODELNAME = ""
+MAX_EPOCH = 500
+
+
 folds = range(10)
 output = 6
 img_width, img_height = 257, 257
@@ -60,19 +61,19 @@ else:
 
 ## Generators
 test_datagen = ImageDataGenerator(rescale=1./255)
-if data_augmentation == 1:
+if DATA_AUGMENTATION == 1:
     train_datagen = ImageDataGenerator(
             rotation_range=359,
             horizontal_flip=True,
             vertical_flip=True,
             rescale=1./255,    
             fill_mode='nearest')        
-elif data_augmentation == 0:
+elif DATA_AUGMENTATION == 0:
     train_datagen = ImageDataGenerator(rescale=1./255)
 
 
 ### IMPORT IMAGES
-pathIm, dirsIm, filesIm = next(os.walk(path_to_images))
+pathIm, dirsIm, filesIm = next(os.walk(PATH_TO_IMAGES))
         
 imagesAll = []    
 imageNrs = []
@@ -87,7 +88,7 @@ imagesAll = np.stack(imagesAll,axis=0)
 
 
 ### IMPORT LABELS
-df = pd.read_excel(path_to_labels + 'Supplementary Table S1.xlsx')
+df = pd.read_excel(PATH_TO_LABELS + 'Supplementary Table S1.xlsx')
 
 labelsAll = df[['Multiclass class']].values.flatten()
 labelsAll = labelsAll[imageNrs]
@@ -95,7 +96,7 @@ labelsAll = labelsAll.astype(int).reshape(labelsAll.size)
 
 
 ### IMPORT CROSS-VALIDATION SPLITS
-df = pd.read_excel(path_to_cv + 'cvMultiple.xlsx', header=None)
+df = pd.read_excel(PATH_TO_CV + 'cvMultiple.xlsx', header=None)
 
 cvIndices = df.values.flatten()
 
@@ -164,8 +165,8 @@ for CV in folds:
             shuffle=True)
     
     ## Define callbacks
-    checkpoint = ModelCheckpoint(path_to_save+modelname+ '_' + str(CV) + '_checkpoint' + '.hdf5', monitor='val_loss', verbose=1, save_best_only=True, mode='auto')
-    csvlog = CSVLogger(path_to_save+modelname+ '_' + str(CV) + '_train_log.csv',append=False)
+    checkpoint = ModelCheckpoint(PATH_TO_SAVE + MODELNAME + '_' + str(CV) + '_checkpoint' + '.hdf5', monitor='val_loss', verbose=1, save_best_only=True, mode='auto')
+    csvlog = CSVLogger(PATH_TO_SAVE + MODELNAME + '_' + str(CV) + '_train_log.csv',append=False)
     early_stopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=50, verbose=1)
     
     ## Start training
@@ -173,7 +174,7 @@ for CV in folds:
     history = model.fit_generator(
                 train_generator,
                 steps_per_epoch=len(newlabelsTrain)//5,
-                epochs=epoch_nr,
+                epochs=MAX_EPOCH,
                 validation_data=val_generator,
                 validation_steps=len(labelsVal)//5,
                 callbacks = [checkpoint, csvlog, early_stopping])
@@ -191,7 +192,7 @@ for CV in folds:
     ### TESTING NETWORK
     ## Loading weights of best network that was just trained
     model = setup_sequential_model()
-    model = load_model(path_to_save + modelname + '_' + str(CV) + '_checkpoint' + '.hdf5')
+    model = load_model(PATH_TO_SAVE + MODELNAME + '_' + str(CV) + '_checkpoint' + '.hdf5')
     adam = optimizers.Adam(lr=0.0001)
     model.compile(loss='categorical_crossentropy',
               optimizer=adam,
@@ -231,7 +232,5 @@ for CV in folds:
 
     
     ### SAVE VARIABLES
-    with open(path_to_save + modelname + '_' + str(CV) + '.pkl', 'wb') as f:
+    with open(PATH_TO_SAVE + MODELNAME + '_' + str(CV) + '.pkl', 'wb') as f:
         pickle.dump([acc, val_acc, loss, val_loss, Time, predictions, compare, F1, idxTest, idxVal], f)
-
-
