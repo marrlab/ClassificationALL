@@ -22,6 +22,4 @@ In the multiclass classification script, the classification of six classes in th
 As mentioned before, 150 images are created using data augmentation for the multiclass classification due to the imbalance in the number of images per class. This data augmentation includes rotation and horizontal and vertical flipping, like in the binary classification. First it is calculated how many extra images should be created. Then the rotation and flipping is chosen randomly and the images are adjusted. The new image is then added to a new array of images. The same holds for the labels. These two arrays are then returned to the Multiclass_classicification.py script. 
 
 ## References
-[1] R. D. Labati, V. Piuri, and F. Scotti, “All-idb: The acute lymphoblastic leukemia
-image database for image processing,” in Image processing (ICIP), 2011 18th IEEE
-international conference on, pp. 2045–2048, IEEE, 2011.
+[1] R. D. Labati, V. Piuri, and F. Scotti, “All-idb: The acute lymphoblastic leukemia image database for image processing,” in Image processing (ICIP), 2011 18th IEEE international conference on, pp. 2045–2048, IEEE, 2011.
